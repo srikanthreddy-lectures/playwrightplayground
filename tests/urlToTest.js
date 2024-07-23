@@ -1,0 +1,1 @@
+module.exports = "https://sxz9yq.csb.app/";

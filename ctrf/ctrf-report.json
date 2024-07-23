@@ -1,0 +1,34 @@
+{
+  "results": {
+    "tool": {
+      "name": "playwright"
+    },
+    "summary": {
+      "tests": 1,
+      "passed": 1,
+      "failed": 0,
+      "pending": 0,
+      "skipped": 0,
+      "other": 0,
+      "start": 1721717899308,
+      "stop": 1721717904088,
+      "suites": 0
+    },
+    "tests": [
+      {
+        "name": "Verify style tag, h3 tag, and form structure",
+        "status": "passed",
+        "duration": 3210,
+        "start": 1721717899,
+        "stop": 1721717902,
+        "rawStatus": "passed",
+        "tags": [],
+        "type": "e2e",
+        "filePath": "/home/ubuntu/Documents/PlayW/TestingPlayground/play-test/tests/TestCase.spec.js",
+        "retries": 0,
+        "flaky": false,
+        "suite": "firefox > TestCase.spec.js > Website Style Verification"
+      }
+    ]
+  }
+}

@@ -1,0 +1,288 @@
+<html><head><base href="https://githubcontrib.ai">
+<title>FSD(MERN) Project Evaluator - Teacher Mode</title>
+<style>
+  body {
+    font-family: Arial, sans-serif;
+    background-color: #f0f0f0;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    min-height: 100vh;
+  }
+  .left-panel {
+    width: 350px;
+    background-color: #24292e;
+    color: white;
+    padding: 1rem;
+    display: flex;
+    flex-direction: column;
+    transition: width 0.3s ease;
+  }
+  .main-content {
+    flex-grow: 1;
+    padding: 2rem;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+  .container {
+    background-color: white;
+    padding: 2rem;
+    border-radius: 8px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    text-align: center;
+    width: 100%;
+    max-width: 600px;
+    margin-bottom: 2rem;
+  }
+  h1, h2 {
+    color: #333;
+    margin-bottom: 1rem;
+  }
+  form {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+  input[type="url"] {
+    width: 100%;
+    padding: 0.5rem;
+    margin-bottom: 1rem;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    font-size: 1rem;
+  }
+  button {
+    background-color: #0366d6;
+    color: white;
+    border: none;
+    padding: 0.5rem 1rem;
+    border-radius: 4px;
+    font-size: 1rem;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+  }
+  button:hover {
+    background-color: #0056b3;
+  }
+  #result {
+    margin-top: 1rem;
+    font-weight: bold;
+  }
+  .testcase-card {
+    background-color: #2f363d;
+    border-radius: 4px;
+    padding: 1rem;
+    margin-bottom: 1rem;
+  }
+  .testcase-card h3 {
+    margin-top: 0;
+    color: #58a6ff;
+  }
+  .testcase-card pre {
+    margin: 0.5rem 0;
+    font-size: 0.9rem;
+    white-space: pre-wrap;
+    word-wrap: break-word;
+  }
+  #testcases-results {
+    width: 100%;
+    max-width: 600px;
+    background-color: white;
+    border-radius: 8px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    padding: 1rem;
+  }
+  .testcase-result {
+    display: flex;
+    align-items: center;
+    padding: 0.5rem;
+    border: 1px solid #e1e4e8;
+    border-radius: 4px;
+    margin-bottom: 0.5rem;
+  }
+  .testcase-result .icon {
+    margin-right: 1rem;
+    font-size: 1.5rem;
+  }
+  .testcase-result .correct {
+    color: #28a745;
+  }
+  .testcase-result .wrong {
+    color: #dc3545;
+  }
+  .testcase-result p {
+    margin: 0;
+    flex-grow: 1;
+  }
+  #editor {
+    flex-grow: 1;
+    width: 100%;
+    font-size: 14px;
+    border-radius: 4px;
+  }
+  .splitter {
+    width: 10px;
+    background-color: #444;
+    cursor: col-resize;
+  }
+  #testcase-form {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+  }
+  #testcases-container {
+    overflow-y: auto;
+    margin-bottom: 1rem;
+  }
+</style>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/ace/1.4.12/ace.js"></script>
+</head>
+<body>
+  <div class="left-panel" id="leftPanel">
+    <h2>Test Cases</h2>
+    <div id="testcases-container"></div>
+    <form id="testcase-form">
+      <div id="editor">function testCase() {
+  // Write your test case here
+  // Return true if the test passes, false otherwise
+  return true;
+}</div>
+      <button type="submit">Add Test Case</button>
+    </form>
+  </div>
+  
+  <div class="splitter" id="splitter"></div>
+
+  <div class="main-content">
+    <div class="container">
+      <h1>FSD(MERN) Project Evaluator - Teacher Mode</h1>
+      <form id="github-form" method="GET" action="/analyze">
+        <input type="url" id="github-url" name="repo" placeholder="Enter GitHub repository URL" required="">
+        <button type="submit">Evaluate Test Cases</button>
+      </form>
+      <div id="result"></div>
+    </div>
+    <div id="testcases-results">
+      <h2>Test Case Results</h2>
+      <div id="testcase-list"></div>
+    </div>
+  </div>
+
+  <script>
+    const testcases = [];
+    let editor;
+
+    function initializeEditor() {
+      editor = ace.edit("editor");
+      editor.setTheme("ace/theme/monokai");
+      editor.session.setMode("ace/mode/javascript");
+      editor.setOptions({
+        maxLines: Infinity
+      });
+    }
+
+    function renderTestCases() {
+      const container = document.getElementById('testcases-container');
+      container.innerHTML = '';
+      testcases.forEach((testcase, index) => {
+        const card = document.createElement('div');
+        card.className = 'testcase-card';
+        card.innerHTML = `
+          <h3>Test Case ${index + 1}</h3>
+          <pre>${testcase}</pre>
+        `;
+        container.appendChild(card);
+      });
+    }
+
+    function renderTestCaseResults() {
+      const container = document.getElementById('testcase-list');
+      container.innerHTML = '';
+      const sampleResults = [
+        { passed: true, description: "Check if main branch is protected" },
+        { passed: false, description: "Verify commit message format" },
+        { passed: true, description: "Test CI/CD pipeline execution" },
+        { passed: true, description: "Check code coverage above 80%" },
+        { passed: false, description: "Ensure no sensitive data in commits" }
+      ];
+      sampleResults.forEach((result, index) => {
+        const resultDiv = document.createElement('div');
+        resultDiv.className = 'testcase-result';
+        resultDiv.innerHTML = `
+          <span class="icon ${result.passed ? 'correct' : 'wrong'}">
+            ${result.passed ? '✓' : '✗'}
+          </span>
+          <p>Test Case ${index + 1}: ${result.description}</p>
+        `;
+        container.appendChild(resultDiv);
+      });
+    }
+
+    document.getElementById('testcase-form').addEventListener('submit', (e) => {
+      e.preventDefault();
+      const testCaseCode = editor.getValue();
+      if (testCaseCode.trim()) {
+        testcases.push(testCaseCode.trim());
+        editor.setValue('function testCase() {\n  // Write your test case here\n  // Return true if the test passes, false otherwise\n  return true;\n}');
+        renderTestCases();
+      }
+    });
+
+    document.getElementById('github-form').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const url = document.getElementById('github-url').value;
+      const resultDiv = document.getElementById('result');
+      resultDiv.textContent = 'Analyzing...';
+
+      try {
+        const response = await fetch('/analyze', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ repo: url, testcases: testcases }),
+        });
+
+        if (!response.ok) {
+          throw new Error('Network response was not ok');
+        }
+
+        const data = await response.json();
+        resultDiv.textContent = `Analysis complete! Total contributions: ${data.totalContributions}`;
+        
+        renderTestCaseResults();
+      } catch (error) {
+        resultDiv.textContent = 'Error occurred while analyzing the repository. Please try again.';
+        console.error('Error:', error);
+      }
+    });
+
+    // Splitter functionality
+    const leftPanel = document.getElementById('leftPanel');
+    const splitter = document.getElementById('splitter');
+    let isResizing = false;
+
+    splitter.addEventListener('mousedown', (e) => {
+      isResizing = true;
+      document.addEventListener('mousemove', handleMouseMove);
+      document.addEventListener('mouseup', () => {
+        isResizing = false;
+        document.removeEventListener('mousemove', handleMouseMove);
+      });
+    });
+
+    function handleMouseMove(e) {
+      if (!isResizing) return;
+      const newWidth = e.clientX;
+      leftPanel.style.width = `${newWidth}px`;
+    }
+
+    // Initialize the editor and render sample test case results on page load
+    window.onload = function() {
+      initializeEditor();
+      renderTestCaseResults();
+    };
+  </script>
+
+</body></html>
